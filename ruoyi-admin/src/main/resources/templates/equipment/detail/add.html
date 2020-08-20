@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('百度ECharts')" />
+    <th:block th:include="include :: header('新增设备')" />
+    <th:block th:include="include :: select2-css" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-detail-add">
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">设备编号：</label>
+                <div class="col-sm-8">
+                    <input name="equipmentId" class="form-control" required type="text" placeholder="请输入产品的IMEI号">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">设备名称：</label>
+                <div class="col-sm-8">
+                    <input name="equipmentName" class="form-control" required type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">设备类型：</label>
+                <div class="col-sm-8">
+                    <select name="type" class="form-control m-b" required th:with="type=${@dict.getType('e_type')}">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">厂商：</label>
+                <div class="col-sm-8">
+                    <input name="firm" class="form-control" required type="text" value="ZCSensor">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">所属货架：</label>
+                <div class="col-sm-8">
+                    <div class="input-group">
+                        <input name="deptId" type="hidden" id="deptId"/>
+                        <input name="deptName" id="deptName" type="hidden" >
+                        <input name="shelveX" id="shelveX" type="hidden" >
+                        <input name="shelveY" id="shelveY" type="hidden" >
+
+                        <input name="shelveId" type="hidden" id="shelveId"/>
+                        <input name="shelveName" onclick="selectShelves()" id="shelveName" type="text" placeholder="请选择归属货架" class="form-control" required>
+                        <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div id="container" style="height: 500px;width: 1200px"></div>
+            </div>
+
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <th:block th:include="include :: select2-js" />
+    <script type="text/javascript">
+        var prefix = ctx + "equipment/detail"
+        $("#form-detail-add").validate({
+            focusCleanup: true
+        });
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                $("#shelveX").val(data[0][0].toFixed(0));
+                $("#shelveY").val(data[0][1].toFixed(0));
+                $.operate.save(prefix + "/add", $('#form-detail-add').serialize());
+            }
+        }
+        // 选择货架
+        function selectShelves() {
+            var selectShelvsUrl = ctx + "equipment/shelves/shelvesDialog";
+            var options = {
+                title: '选择货架',
+                width: "800",
+                height:"400",
+                url: selectShelvsUrl,
+                callBack: doSubmit
+            };
+            $.modal.openOptions(options);
+        }
+
+        function doSubmit(index, layero){
+            var win = layero.find("iframe")[0].contentWindow;
+            var rows = win.$("#bootstrap-table").bootstrapTable('getSelections');
+            console.log(rows.length);
+            if (rows.length != 1) {
+                $.modal.alertWarning("请选择一条记录");
+                return;
+            }
+            console.log(rows[0].code);
+            //设置值
+            $("#shelveId").val(rows[0].id);
+            $("#shelveName").val(rows[0].code);
+            $("#deptId").val(rows[0].deptId);
+            $("#deptName").val(rows[0].deptName);
+            option.xAxis.max= rows[0].sr;
+            option.yAxis.max= rows[0].sc;
+            layer.close(index);
+            //显示货架图
+            openShelveImg();
+
+        }
+
+
+    </script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+<script>
+    var dom = document.getElementById("container");
+    var myChart = echarts.init(dom);
+    var app = {};
+    option = null;
+    var symbolSize = 20;
+    var data = [
+        [2.0, 2.0]
+    ];
+
+    option = {
+        title: {
+            text: '货架图'
+        },
+        tooltip: {
+            triggerOn: 'none',
+            formatter: function (params) {
+                return 'X: ' + params.data[0].toFixed(0) + '<br>Y: ' + params.data[1].toFixed(0);
+            }
+        },
+        grid: {
+        },
+        xAxis: {interval:1,min:1,max:10},
+        yAxis: {interval:1,min:1,max:10},
+        series: [
+            {
+                id: 'a',
+                type: 'line',
+                smooth: true,
+                symbol:"rect",
+                symbolSize: symbolSize,
+                data: data,
+                type: 'scatter',
+                itemStyle:{
+                    color:'#0000FF'
+                }
+            }
+        ]
+    };
+
+
+    function updatePosition() {
+        myChart.setOption({
+            graphic: echarts.util.map(data, function (item, dataIndex) {
+                return {
+                    position: myChart.convertToPixel('grid', item)
+                };
+            })
+        });
+    }
+
+    function showTooltip(dataIndex) {
+        myChart.dispatchAction({
+            type: 'showTip',
+            seriesIndex: 0,
+            dataIndex: dataIndex
+        });
+    }
+
+    function hideTooltip(dataIndex) {
+        myChart.dispatchAction({
+            type: 'hideTip'
+        });
+    }
+
+    function onPointDragging(dataIndex, dx, dy) {
+        data[dataIndex] = myChart.convertFromPixel('grid', this.position);
+
+        // Update data
+        myChart.setOption({
+            series: [{
+                id: 'a',
+                data: data
+            }]
+        });
+    }
+    ;
+    function openShelveImg(){
+    setTimeout(function () {
+        // Add shadow circles (which is not visible) to enable drag.
+        myChart.setOption({
+            graphic: echarts.util.map(data, function (item, dataIndex) {
+                return {
+                    type: 'circle',
+                    position: myChart.convertToPixel('grid', item),
+                    shape: {
+                        cx: 0,
+                        cy: 0,
+                        r: symbolSize / 2
+                    },
+                    invisible: true,
+                    draggable: true,
+                    ondrag: echarts.util.curry(onPointDragging, dataIndex),
+                    onmousemove: echarts.util.curry(showTooltip, dataIndex),
+                    onmouseout: echarts.util.curry(hideTooltip, dataIndex),
+                    z: 100
+                };
+            })
+        });
+    }, 0);
+
+    window.addEventListener('resize', updatePosition);
+
+    myChart.on('dataZoom', updatePosition);
+        if (option && typeof option === "object") {
+            myChart.setOption(option, true);
+        }
+    }
+
+
+</script>
+</body>
+</html>

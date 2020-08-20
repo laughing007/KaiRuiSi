@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.equipment.mapper.EShelvesMapper">
+    
+    <resultMap type="EShelves" id="EShelvesResult">
+        <result property="id"    column="id"    />
+        <result property="code"    column="code"    />
+        <result property="sR"    column="s_r"    />
+        <result property="sC"    column="s_c"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="deptName"    column="dept_name"    />
+    </resultMap>
+
+    <sql id="selectEShelvesVo">
+        select id, code, s_r, s_c,dept_id,dept_name from e_shelves
+    </sql>
+
+    <select id="selectEShelvesList" parameterType="EShelves" resultMap="EShelvesResult">
+        select s.id, s.code, s.s_r, s.s_c,s.dept_id,s.dept_name from e_shelves s
+        left join sys_dept d on s.dept_id = d.dept_id
+        <where>  
+            <if test="code != null  and code != ''"> and s.code like concat('%', #{code}}, '%') </if>
+            <if test="sR != null "> and s.s_r = #{sR}</if>
+            <if test="sC != null "> and s.s_c = #{sC}</if>
+            <if test="deptName != null "> and dept_name = #{deptName}</if>
+            <if test="deptId != null and deptId != 0">
+                AND (s.dept_id = #{deptId} OR s.dept_id IN ( SELECT t.dept_id FROM sys_dept t WHERE FIND_IN_SET (#{deptId},ancestors) ))
+            </if>
+            <!-- 数据范围过滤 -->
+            ${params.dataScope}
+        </where>
+    </select>
+    
+    <select id="selectEShelvesById" parameterType="Long" resultMap="EShelvesResult">
+        <include refid="selectEShelvesVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertEShelves" parameterType="EShelves" useGeneratedKeys="true" keyProperty="id">
+        insert into e_shelves
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="code != null  and code != ''">code,</if>
+            <if test="sR != null ">s_r,</if>
+            <if test="sC != null ">s_c,</if>
+            <if test="deptId != null ">dept_id,</if>
+            <if test="deptName != null ">dept_name,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="code != null  and code != ''">#{code},</if>
+            <if test="sR != null ">#{sR},</if>
+            <if test="sC != null ">#{sC},</if>
+            <if test="deptId != null ">#{deptId},</if>
+            <if test="deptName != null ">#{deptName},</if>
+         </trim>
+    </insert>
+
+    <update id="updateEShelves" parameterType="EShelves">
+        update e_shelves
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="code != null  and code != ''">code = #{code},</if>
+            <if test="sR != null ">s_r = #{sR},</if>
+            <if test="sC != null ">s_c = #{sC},</if>
+            <if test="deptId != null ">dept_id = #{deptId},</if>
+            <if test="deptName != null ">dept_name = #{deptName},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteEShelvesById" parameterType="Long">
+        delete from e_shelves where id = #{id}
+    </delete>
+
+    <delete id="deleteEShelvesByIds" parameterType="String">
+        delete from e_shelves where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    
+</mapper>

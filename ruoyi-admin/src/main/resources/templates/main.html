@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html  lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--360浏览器优先以webkit内核解析-->
+    <title>设备管理</title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="../static/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
+    <link href="../static/css/font-awesome.min.css" th:href="@{/css/font-awesome.min.css}" rel="stylesheet"/>
+    <link href="../static/css/main/animate.min.css" th:href="@{/css/main/animate.min.css}" rel="stylesheet"/>
+    <link href="../static/css/main/style.min862f.css" th:href="@{/css/main/style.min862f.css}" rel="stylesheet"/>
+    <link href="../static/css/toastr.min.css" th:href="@{/css/toastr.min.css}" rel="stylesheet"/>
+    <th:block th:include="include :: header('百度ECharts')" />
+    <th:block th:include="include :: header('主页')" />
+    <th:block th:include="include :: layout-latest-css" />
+    <th:block th:include="include :: ztree-css" />
+</head>
+
+<body class="gray-bg">
+<audio id="alarmAudio">
+    <source th:src="@{/img/alarm.mp3}" type="audio/mp3"> controls="controls">
+</audio>
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-lg-7 col-padding">
+            <div class="row">
+                <div class="col-lg-12 select-table table-striped" style="margin-top:2px;min-height:875px;">
+                    <table id="shelves-table"></table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5 col-padding">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-content">
+                            <div class="row">
+                                <div class="col-lg-4">
+                                    <div class="widget p-sm text-center custom-bg-1">
+                                        <div class="m-b-sm">
+                                            <i class="fa fa-cubes fa-2x"></i>
+                                            <h3 class="m-xs"><span id="equipmentTotalCount">2</span></h3>
+                                            <small>设备总数</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="widget p-sm text-center custom-bg-1">
+                                        <div class="m-b-sm">
+                                            <i class="fa fa-eye fa-2x"></i>
+                                            <h3 class="m-xs"><span id="equipmentOnlineCount">1</span></h3>
+                                            <small>设备在线</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="widget  p-sm text-center custom-bg-1">
+                                        <div class="m-b-sm">
+                                            <i class="fa fa-eye-slash fa-2x"></i>
+                                            <h3 class="m-xs"><span id="equipmentOfflineCount">1</span></h3>
+                                            <small>设备离线</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-content">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div id="container-bar" style="height: 200px;"></div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="widget style1 custom-bg-2">
+                                            <div class="row">
+                                                <div class="col-xs-4 text-center">
+                                                    <i class="fa fa-envelope fa-2x"></i>
+                                                </div>
+                                                <div class="col-xs-8 text-right">
+                                                    <span>总数</span>
+                                                    <h3 class="font-bold"><span id="infoTotalCount">1</span></h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="widget style1 custom-bg-2">
+                                            <div class="row">
+                                                <div class="col-xs-4 text-center">
+                                                    <i class="fa fa-heartbeat fa-2x"></i>
+                                                </div>
+                                                <div class="col-xs-8 text-right">
+                                                    <span>心跳</span>
+                                                    <h3 class="font-bold"><span id="infoHeartbeatCount">1</span></h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="widget style1 custom-bg-2">
+                                            <div class="row">
+                                                <div class="col-xs-4 text-center">
+                                                    <i class="fa fa-bell fa-2x"></i>
+                                                </div>
+                                                <div class="col-xs-8 text-right">
+                                                    <span>报警</span>
+                                                    <h3 class="font-bold"><span id="infoAlarmCount">0</span></h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <div class="row" style="padding:0 15px">
+                <div class="col-lg-12 select-table table-striped" style="margin-top:2px;min-height:350px;">
+                    <table id="bootstrap-table"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script th:src="@{/js/jquery.min.js}"></script>
+    <script th:src="@{/js/bootstrap.min.js}"></script>
+    <script th:src="@{/js/plugins/toastr.min.js}"></script>
+    <script th:src="@{/ajax/libs/layer/layer.min.js}"></script>
+    <th:block th:include="include :: footer" />
+    <th:block th:include="include :: layout-latest-js" />
+    <th:block th:include="include :: ztree-js" />
+    <!--<script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=ZuSiMPWH7BWL9boEDhmsdOIKwcG3s4Xi"></script>-->
+    <th:block th:include="include :: echarts-js" />
+    <script type="text/javascript">
+	    $('#pay-qrcode').click(function(){
+	        var html=$(this).html();
+	        parent.layer.open({
+	            title: false,
+	            type: 1,
+	            closeBtn:false,
+	            shadeClose:true,
+	            area: ['600px', 'auto'],
+	            content: html
+	        });
+	    });
+
+        var prefix = ctx + "equipment/data";
+
+        var prefix_detail = ctx + "equipment/detail"
+
+
+        //Echarts bar start
+        var domEchartsBar = document.getElementById("container-bar");
+        var myChartBar = echarts.init(domEchartsBar);
+        var appBar = {};
+        optionBar = null;
+        function updateMyChartBar(TotalCount,HeartbeatCount,AlarmCount){
+            optionBar = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {
+                    data: ['信息总数', '心跳信息', '报警信息']
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value',
+                    boundaryGap: [0, 1]
+                },
+                yAxis: {
+                    type: 'category',
+                    data: ['信息']
+                },
+                series: [
+                    {
+                        name: '信息总数',
+                        type: 'bar',
+                        data: [TotalCount]
+                    },
+                    {
+                        name: '心跳信息',
+                        type: 'bar',
+                        data: [HeartbeatCount]
+                    },
+                    {
+                        name: '报警信息',
+                        type: 'bar',
+                        data: [AlarmCount]
+                    }
+                ]
+            };
+
+            if (optionBar && typeof optionBar === "object") {
+                myChartBar.setOption(optionBar, true);
+            }
+        }
+        // 先执行一次，好有数据
+        getEquipmentAll();
+        getInformationCount();
+        getInfomationByEventTimeForToday();
+
+        setInterval(function(){
+            getEquipmentAll();
+            getInformationCount();
+            getInfomationByEventTimeForToday();
+            getShelves();
+
+        },10000);
+
+        //语音和弹窗提醒
+        function audioAndToastNotify(alarmEquipmentCount){
+            if(alarmEquipmentCount >= 1){
+                setTimeout(function() {
+                    toastr.options = {
+                        closeButton: true,
+                        progressBar: true,
+                        showMethod: 'slideDown',
+                        timeOut: 3000
+                    };
+                    toastr.error('请注意，已有设备超过告警角度', '');
+                    playAudio();
+
+                }, 1000);
+            }
+        }
+
+        function playAudio(){
+            //音频
+            var alarmAudio = document.getElementById("alarmAudio");
+            alarmAudio.play();
+        }
+
+        //请求设备总数，在线设备数，离线设备数
+        function getEquipmentAll(){
+
+            $.ajax({
+                url:prefix_detail+"/selectEquipmentAll",
+                type:"GET",
+                datatype:"json",
+                success:function(data){
+                    //var dataObj = eval("("+data+")");
+                    if(data!=''){
+                        var totalCount=data.totalCount;
+                        var onlineCount=data.onlineCount;
+                        var offlineCount=data.offlineCount;
+                        var alarmCount = data.alarmCount;
+                        //var equipmentList=data.list;
+
+                        $("#equipmentTotalCount").html(totalCount);
+                        $("#equipmentOnlineCount").html(onlineCount);
+                        $("#equipmentOfflineCount").html(offlineCount);
+                        audioAndToastNotify(alarmCount);
+                        //updateBaiduMap(equipmentList);
+                    }
+                }
+            });
+        }
+
+        //请求信息总数，心跳信息数，报警信息数
+        function getInformationCount(){
+
+            $.ajax({
+                url:prefix+"/selectInformationCount",
+                type:"GET",
+                datatype:"json",
+                success:function(data){
+                    //var dataObj = eval("("+data+")");
+                    if(data!=''){
+                        var infoTotalCount=data.infoTotalCount;
+                        var infoHeartbeatCount=data.infoHeartbeatCount;
+                        var infoAlarmCount=data.infoAlarmCount;
+
+                        $("#infoTotalCount").html(infoTotalCount);
+                        $("#infoHeartbeatCount").html(infoHeartbeatCount);
+                        $("#infoAlarmCount").html(infoAlarmCount);
+
+                        updateMyChartBar(infoTotalCount,infoHeartbeatCount,infoAlarmCount);
+
+                    }
+                }
+            });
+        }
+
+        var options = {
+            url: prefix + "/list",
+            queryParams: queryParams,
+            sortName: "eventTime",
+            sortOrder: "desc",
+            pageSize: 5,
+            modalName: "数据",
+            search: false,
+            showExport: false,
+            showRefresh:false,
+            showToggle:false,
+            showColumns:false,
+            showSearch:false,
+            columns: [{
+                checkbox: false
+            },
+                {
+                    field: 'messageType',
+                    title: '信息类型',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        if(value == 'Heartbeat'){
+                            return '<span class="badge badge-primary">心跳</span>';
+                        }
+                        if(value == 'Alarm'){
+                            return '<span class="badge badge-danger">报警</span>';
+                        }
+                    }
+                },
+                {
+                    field: 'equipmentName',
+                    title: '设备名称'
+                },
+                {
+                    field: 'alarmX',
+                    title: 'x轴报警',
+                    align: 'center',
+                    formatter: function(value, row, index){
+                        if(value == '0'){
+                            return '<span class="badge badge-primary">否</span>';
+                        }
+                        if(value == '1'){
+                            return '<span class="badge badge-danger">是</span>';
+                        }
+                    }
+                },
+                {
+                    field: 'alarmY',
+                    title: 'y轴报警',
+                    align: 'center',
+                    formatter:function(value, row, index){
+                        if(value == '0'){
+                            return '<span class="badge badge-primary">否</span>';
+                        }
+                        if(value == '1'){
+                            return '<span class="badge badge-danger">是</span>';
+                        }
+                    }
+                },
+                {
+                    field: 'eventtime',
+                    title: '上报时间'
+                }]
+        };
+        $.table.init(options);
+
+        var shelves_options = {
+            id:"shelves-table",
+            url: ctx + "equipment/shelves/list",
+            pageSize:15,
+            search: false,
+            showExport: false,
+            showRefresh:false,
+            showToggle:false,
+            showColumns:false,
+            showSearch:false,
+            columns: [{
+                checkbox: false
+            },
+                {
+                    field : 'id',
+                    title : '列',
+                    visible: false
+                },
+                {
+                    field : 'code',
+                    title : '货架名称'
+                },
+                {
+                    field : 'deptId',
+                    title : '所属部门id',
+                    visible:false
+                },
+                {
+                    field : 'deptName',
+                    title : '所属部门'
+                },
+                {
+                    field : 'sr',
+                    title : 'X'
+                },
+                {
+                    field : 'sc',
+                    title : 'Y'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-success btn-xs" href="javascript:void(0)" onclick="eDetail(' + row.id + ',\''+row.code+'\')">设备分布</a> ');
+                        return actions.join('');
+                    }
+                }]
+        };
+        function eDetail(shelveId,shelveName) {
+            var url = ctx + "equipment/shelves"+"/shelveDetail?shelveId="+shelveId+"&shelveName="+shelveName;
+            $.modal.openTab("设备位置分布图", url);
+        }
+        $.table.init(shelves_options);
+
+        function getInfomationByEventTimeForToday(){
+            $("#bootstrap-table").bootstrapTable('refresh',prefix + "/list");
+        }
+        function getShelves() {
+            $("#shelves-table").bootstrapTable('refresh',ctx + "equipment/shelves/list");
+        }
+
+        function queryParams(params) {
+            return {
+                pageSize:       params.limit,
+                pageNum:        params.offset / params.limit + 1,
+                searchValue:    params.search
+            };
+        }
+    </script>
+</body>
+</html>

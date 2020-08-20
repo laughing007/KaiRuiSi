@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.equipment.mapper.EDetailMapper">
+
+    <resultMap type="EDetail" id="EDetailResult">
+        <result property="id"    column="id"    />
+        <result property="equipmentId"    column="equipment_id"    />
+        <result property="equipmentName"    column="equipment_name"    />
+        <result property="type"    column="type"    />
+        <result property="firm"    column="firm"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="deptName"    column="dept_name"    />
+        <result property="longitude"    column="longitude"    />
+        <result property="latitude"    column="latitude"    />
+        <result property="address"    column="address"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="eStatus"    column="e_status"    />
+        <result property="reportStatus"    column="report_status"    />
+        <result property="shelveId"    column="shelve_id"    />
+        <result property="shelveName"    column="shelve_name"    />
+        <result property="shelveX"    column="shelve_x"    />
+        <result property="shelveY"    column="shelve_y"    />
+        <result property="sR"    column="s_r"    />
+        <result property="sC"    column="s_c"    />
+    </resultMap>
+
+    <sql id="selectEDetailVo">
+        select id, equipment_id, equipment_name, type, firm, dept_id, dept_name, longitude, latitude, address, status, del_flag, create_by, create_time, update_by, update_time,e_status,report_status,shelve_id,shelve_name,shelve_x,shelve_y from e_detail
+    </sql>
+
+    <select id="selectEDetailList" parameterType="EDetail" resultMap="EDetailResult">
+        select e.id, e.equipment_id, e.equipment_name, e.type, e.firm, e.dept_id, e.dept_name, e.longitude, e.latitude, e.address, e.status, e.del_flag, e.create_by, e.create_time, e.update_by, e.update_time,e.e_status,e.report_status,e.shelve_id,e.shelve_name,e.shelve_x,e.shelve_y from e_detail e
+        left join sys_dept d on e.dept_id = d.dept_id
+        <where>
+            <if test="equipmentId != null  and equipmentId != ''"> and e.equipment_id = #{equipmentId}</if>
+            <if test="equipmentName != null  and equipmentName != ''"> and e.equipment_name like concat('%', #{equipmentName}, '%')</if>
+            <if test="type != null  and type != ''"> and e.type = #{type}</if>
+            <if test="firm != null  and firm != ''"> and e.firm = #{firm}</if>
+            <if test="longitude != null  and longitude != ''"> and e.longitude = #{longitude}</if>
+            <if test="latitude != null  and latitude != ''"> and e.latitude = #{latitude}</if>
+            <if test="address != null  and address != ''"> and e.address like concat('%',#{address},'%')</if>
+            <if test="status != null  and status != ''"> and e.status = #{status}</if>
+            <if test="type != null  and type != ''"> and e.type = #{type}</if>
+            <if test="eStatus != null  and eStatus != ''"> and e.e_status = #{eStatus}</if>
+            <if test="reportStatus != null  and reportStatus != ''"> and e.report_status = #{reportStatus}</if>
+            <if test="shelveId != null  and shelveId != ''"> and e.shelve_id = #{shelveId}</if>
+            <if test="deptId != null and deptId != 0">
+                AND (e.dept_id = #{deptId} OR e.dept_id IN ( SELECT t.dept_id FROM sys_dept t WHERE FIND_IN_SET (#{deptId},ancestors) ))
+            </if>
+            <!-- 数据范围过滤 -->
+            ${params.dataScope}
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectEDetailListOrder" parameterType="EDetail" resultMap="EDetailResult">
+        select e.id, e.equipment_id, e.equipment_name, e.type, e.firm, e.dept_id, e.dept_name, e.longitude, e.latitude, e.address, e.status, e.del_flag, e.create_by, e.create_time, e.update_by, e.update_time,e.e_status,e.report_status,e.shelve_id,e.shelve_name,e.shelve_x,e.shelve_y from e_detail e
+        left join sys_dept d on e.dept_id = d.dept_id
+        <where>
+            <if test="equipmentId != null  and equipmentId != ''"> and e.equipment_id = #{equipmentId}</if>
+            <if test="equipmentName != null  and equipmentName != ''"> and e.equipment_name like concat('%', #{equipmentName}, '%')</if>
+            <if test="type != null  and type != ''"> and e.type = #{type}</if>
+            <if test="firm != null  and firm != ''"> and e.firm = #{firm}</if>
+            <if test="longitude != null  and longitude != ''"> and e.longitude = #{longitude}</if>
+            <if test="latitude != null  and latitude != ''"> and e.latitude = #{latitude}</if>
+            <if test="address != null  and address != ''"> and e.address like concat('%',#{address},'%')</if>
+            <if test="status != null  and status != ''"> and e.status = #{status}</if>
+            <if test="type != null  and type != ''"> and e.type = #{type}</if>
+            <if test="eStatus != null  and eStatus != ''"> and e.e_status = #{eStatus}</if>
+            <if test="reportStatus != null  and reportStatus != ''"> and e.report_status = #{reportStatus}</if>
+            <if test="shelveId != null  and shelveId != ''"> and e.shelve_id = #{shelveId}</if>
+            <if test="deptId != null and deptId != 0">
+                AND (e.dept_id = #{deptId} OR e.dept_id IN ( SELECT t.dept_id FROM sys_dept t WHERE FIND_IN_SET (#{deptId},ancestors) ))
+            </if>
+            <!-- 数据范围过滤 -->
+            ${params.dataScope}
+        </where>
+        order by eventTime asc
+    </select>
+
+    <select id="selectEDetailById" parameterType="Long" resultMap="EDetailResult">
+        select d.id, d.equipment_id, d.equipment_name, d.type, d.firm, d.dept_id, d.dept_name, d.longitude, d.latitude, d.address, d.status, d.del_flag, d.create_by, d.create_time, d.update_by, d.update_time,d.e_status,d.report_status,d.shelve_id,d.shelve_name,d.shelve_x,d.shelve_y,s.s_r,s.s_c
+        from e_detail d left join e_shelves s on d.shelve_id = s.id
+        where d.id = #{id}
+    </select>
+
+    <insert id="insertEDetail" parameterType="EDetail" useGeneratedKeys="true" keyProperty="id">
+        insert into e_detail
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="equipmentId != null  and equipmentId != ''">equipment_id,</if>
+            <if test="equipmentName != null  and equipmentName != ''">equipment_name,</if>
+            <if test="type != null  and type != ''">type,</if>
+            <if test="firm != null  and firm != ''">firm,</if>
+            <if test="deptId != null ">dept_id,</if>
+            <if test="deptName != null ">dept_name,</if>
+            <if test="longitude != null  and longitude != ''">longitude,</if>
+            <if test="latitude != null  and latitude != ''">latitude,</if>
+            <if test="address != null  and address != ''">address,</if>
+            <if test="status != null  and status != ''">status,</if>
+            <if test="delFlag != null  and delFlag != ''">del_flag,</if>
+            <if test="createBy != null  and createBy != ''">create_by,</if>
+            <if test="createTime != null ">create_time,</if>
+            <if test="updateBy != null  and updateBy != ''">update_by,</if>
+            <if test="updateTime != null ">update_time,</if>
+            <if test="shelveId != null ">shelve_id,</if>
+            <if test="shelveName != null ">shelve_name,</if>
+            <if test="shelveX != null ">shelve_x,</if>
+            <if test="shelveY != null ">shelve_y,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="equipmentId != null  and equipmentId != ''">#{equipmentId},</if>
+            <if test="equipmentName != null  and equipmentName != ''">#{equipmentName},</if>
+            <if test="type != null  and type != ''">#{type},</if>
+            <if test="firm != null  and firm != ''">#{firm},</if>
+            <if test="deptId != null ">#{deptId},</if>
+            <if test="deptName != null ">#{deptName},</if>
+            <if test="longitude != null  and longitude != ''">#{longitude},</if>
+            <if test="latitude != null  and latitude != ''">#{latitude},</if>
+            <if test="address != null  and address != ''">#{address},</if>
+            <if test="status != null  and status != ''">#{status},</if>
+            <if test="delFlag != null  and delFlag != ''">#{delFlag},</if>
+            <if test="createBy != null  and createBy != ''">#{createBy},</if>
+            <if test="createTime != null ">#{createTime},</if>
+            <if test="updateBy != null  and updateBy != ''">#{updateBy},</if>
+            <if test="updateTime != null ">#{updateTime},</if>
+            <if test="shelveId != null ">#{shelveId},</if>
+            <if test="shelveName != null ">#{shelveName},</if>
+            <if test="shelveX != null ">#{shelveX},</if>
+            <if test="shelveY != null ">#{shelveY},</if>
+         </trim>
+    </insert>
+
+    <update id="updateEDetail" parameterType="EDetail">
+        update e_detail
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="equipmentId != null  and equipmentId != ''">equipment_id = #{equipmentId},</if>
+            <if test="equipmentName != null  and equipmentName != ''">equipment_name = #{equipmentName},</if>
+            <if test="type != null  and type != ''">type = #{type},</if>
+            <if test="firm != null  and firm != ''">firm = #{firm},</if>
+            <if test="deptId != null ">dept_id = #{deptId},</if>
+            <if test="deptName != null ">dept_name = #{deptName},</if>
+            <if test="longitude != null  and longitude != ''">longitude = #{longitude},</if>
+            <if test="latitude != null  and latitude != ''">latitude = #{latitude},</if>
+            <if test="address != null  and address != ''">address = #{address},</if>
+            <if test="status != null  and status != ''">status = #{status},</if>
+            <if test="delFlag != null  and delFlag != ''">del_flag = #{delFlag},</if>
+            <if test="createBy != null  and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null ">create_time = #{createTime},</if>
+            <if test="updateBy != null  and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="updateTime != null ">update_time = #{updateTime},</if>
+            <if test="eStatus != null  and eStatus != ''">e_status = #{eStatus},</if>
+            <if test="reportStatus != null  and reportStatus != ''">report_status = #{reportStatus},</if>
+            <if test="shelveId != null  and shelveId != ''">shelve_id = #{shelveId},</if>
+            <if test="shelveName != null  and shelveName != ''">shelve_name = #{shelveName},</if>
+            <if test="shelveX != null  and shelveX != ''">shelve_x = #{shelveX},</if>
+            <if test="shelveY != null  and shelveY != ''">shelve_y = #{shelveY},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteEDetailById" parameterType="Long">
+        delete from e_detail where id = #{id}
+    </delete>
+
+    <delete id="deleteEDetailByIds" parameterType="String">
+        delete from e_detail where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectCountDetail" resultType="com.ruoyi.equipment.domain.EDetailCountVO">
+        select count(1) as totalCount,
+       sum(case when e_status=0 then 1 else 0 end) as onlineCount,
+       sum(case when e_status=1 then 1 else 0 end) as offlineCount,
+       sum(case when report_status=1 then 1 else 0 end) as alarmCount
+      from e_detail e
+        <where>
+        1=1
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        </where>
+    </select>
+
+</mapper>

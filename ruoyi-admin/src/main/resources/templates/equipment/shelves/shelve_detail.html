@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('百度ECharts')" />
+    <th:block th:include="include :: header('【货架】')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-shelves-edit" th:object="${eShelves}">
+            <input name="id" th:field="*{id}" type="hidden">
+            <div class="form-group">
+                <label class="col-sm-3 control-label">货架名称：</label>
+                <div class="col-sm-8">
+                    <input name="code" th:field="*{code}" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">X：</label>
+                <div class="col-sm-8">
+                    <input name="sR" id="sR" th:field="*{sR}" readonly class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Y：</label>
+                <div class="col-sm-8">
+                    <input name="sC" id="sC" th:field="*{sC}" readonly class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">
+                <div id="container" style="height: 500px;width: 1200px"></div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script type="text/javascript">
+        var prefix = ctx + "equipment/shelves";
+
+        var dom = document.getElementById("container");
+        var myChart = echarts.init(dom);
+        var app = {};
+        option = null;
+        var symbolSize = 20;
+        var data = [
+        ];
+        var alarmData = [];
+        var offlineData = [];
+
+        option = {
+            title: {
+                text: '货架图'
+            },
+            tooltip: {
+                triggerOn: 'mousemove|click',
+                formatter: function (params) {
+                    return '设备名称:'+params.data[2]+'<br>'+params.data[3]+'<br>X: ' + params.data[0].toFixed(0) + '<br>Y: ' + params.data[1].toFixed(0);
+                }
+            },
+            grid: {
+            },
+            xAxis: {interval:1,min:1,max:10},
+            yAxis: {interval:1,min:1,max:10},
+            series: [
+                {
+                    name: '报警',
+                    smooth: true,
+                    symbol:"rect",
+                    symbolSize: symbolSize,
+                    data: alarmData,
+                    type: 'scatter',
+                    itemStyle:{
+                        color:'#FF0000'
+                    }
+                },
+                {
+                    name: '离线',
+                    smooth: true,
+                    symbol:"rect",
+                    symbolSize: symbolSize,
+                    data: offlineData,
+                    type: 'scatter',
+                    itemStyle:{
+                        color:'#6F6F91'
+                    }
+                }
+                ,
+                {
+                    name: '在线',
+                    smooth: true,
+                    symbol:"rect",
+                    symbolSize: symbolSize,
+                    data: data,
+                    type: 'scatter',
+                    itemStyle:{
+                        color:'#0000FF'
+                    }
+                }
+            ]
+        };
+
+        var shelveId = $("#id").val();
+        $.ajax({
+            url:ctx + "equipment/detail/list?shelveId="+shelveId,
+            type:"POST",
+            datatype:"json",
+            success:function(date){
+                if(date!=''){
+                    console.log(JSON.toString(date));
+                    //获取设备后,
+                    option.xAxis.max= $("#sR").val();
+                    option.yAxis.max= $("#sC").val();
+                    var details = date.rows;
+
+                    for(var i= 0;i<details.length;i++){
+                        var pos = new Array();
+                        pos.push(details[i].shelveX);
+                        pos.push(details[i].shelveY);
+                        pos.push(details[i].equipmentName);
+                        //离线
+                        if(details[i].eStatus == '1'){
+                            pos.push("状态:离线");
+                            offlineData.push(pos);
+                        //报警
+                        }else if(details[i].reportStatus == '1'){
+                            pos.push("状态:报警");
+                            alarmData.push(pos);
+                        }else {
+                            pos.push("状态:正常");
+                            data.push(pos);
+                        }
+
+                    }
+                    myChart.setOption(option, true);
+
+                }
+            }
+        });
+    </script>
+</body>
+</html>

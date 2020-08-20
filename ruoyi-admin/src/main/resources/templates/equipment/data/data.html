@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('设备数据列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <p>IMEI号</p>
+                                <input type="text" id="equipmentId" name="equipmentId"  th:value="${equipmentId}" />
+                            </li>
+                            <li>
+                                <p>设备名称：</p>
+                                <input type="text" name="equipmentName"/>
+                            </li>
+                            <li>
+                                <p>生产编号：</p>
+                                <input type="text" name="sn"/>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+
+                <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()" shiro:hasPermission="equipment:detail:remove">
+                    <i class="fa fa-remove"></i> 删除
+                </a>
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="equipment:detail:export">
+                    <i class="fa fa-download"></i> 导出
+                 </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('equipment:data:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('equipment:data:remove')}]];
+        var prefix = ctx + "equipment/data";
+
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "设备数据",
+                columns: [{
+                    checkbox: true
+                },
+                {
+                    field : 'id', 
+                    title : 'id',
+                    visible: false
+                },
+                {
+                    field : 'equipmentId', 
+                    title : 'IMEI号'
+                },
+                {
+                    field : 'equipmentName', 
+                    title : '设备名称'
+                },
+                {
+                    field : 'messageType', 
+                    title : '信息类型',
+                    align : 'center',
+                    formatter : function (value,row,index) {
+                        if(value == 'Heartbeat'){
+                            return '<span class="badge badge-primary">心跳</span>';
+                        }
+                        if(value == 'Alarm'){
+                            return '<span class="badge badge-danger">报警</span>';
+                        }
+                    }
+                },
+                {
+                    field : 'sn', 
+                    title : '生产编号'
+                },
+                {
+                    field : 'alarmX', 
+                    title : 'x轴报警',
+                    formatter : function (value,row,index) {
+                        if(value == '0'){
+                            return '<span class="badge badge-primary">否</span>';
+                        }
+                        if(value == '1'){
+                            return '<span class="badge badge-danger">是</span>';
+                        }
+                    }
+                },
+                {
+                    field : 'angleX', 
+                    title : 'x轴角度'
+                },
+                {
+                    field : 'alarmY', 
+                    title : 'y轴报警',
+                    formatter : function (value,row,index) {
+                        if(value == '0'){
+                            return '<span class="badge badge-primary">否</span>';
+                        }
+                        if(value == '1'){
+                            return '<span class="badge badge-danger">是</span>';
+                        }
+                    }
+                },
+                {
+                    field : 'angleY', 
+                    title : 'y轴角度'
+                },
+                {
+                    field : 'power', 
+                    title : '电源电压'
+                },
+                {
+                    field : 'eventtime', 
+                    title : '时间'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="$.operate.remove(\'' + row.id + '\')"><i class="fa fa-remove"></i>删除</a>');
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+        });
+    </script>
+</body>
+</html>

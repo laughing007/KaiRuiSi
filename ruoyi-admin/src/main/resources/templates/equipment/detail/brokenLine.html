@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('百度ECharts')" />
+    <th:block th:include="include :: header('修改设备')" />
+    <th:block th:include="include :: select2-css" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <input name="dataTimeList" th:value="${timeMap}" type="hidden">
+        <input name="xList" th:value="${xList}" type="hidden">
+        <input name="yList" th:value="${yList}" type="hidden">
+        <input name="xMax" th:value="${xMax}" type="hidden">
+        <input name="xMin" th:value="${xMin}" type="hidden">
+        <input name="yMax" th:value="${yMax}" type="hidden">
+        <input name="yMin" th:value="${yMin}" type="hidden">
+        <form class="form-horizontal m" id="form-detail-edit" th:object="${eDetail}">
+            <input name="id" th:field="*{id}" type="hidden">
+            <div class="form-group">
+                <label class="col-sm-3 control-label">设备编号：</label>
+                <div class="col-sm-8">
+                    <input name="equipmentId" th:field="*{equipmentId}" class="form-control" type="text" readonly disabled>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">设备名称：</label>
+                <div class="col-sm-8">
+                    <input name="equipmentName" th:field="*{equipmentName}" class="form-control" type="text" readonly disabled>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">设备类型：</label>
+                <div class="col-sm-8">
+                    <select name="type" class="form-control m-b" th:with="type=${@dict.getType('e_type')}" readonly disabled>
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">厂商：</label>
+                <div class="col-sm-8">
+                    <input name="firm" th:field="*{firm}" class="form-control" type="text" readonly disabled>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">所属部门：</label>
+                <div class="col-sm-8">
+                    <div class="input-group">
+                        <input class="form-control" type="text" name="deptName"  id="treeName" th:field="*{deptName}" readonly disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div id="container" style="height: 500px;width: 1200px"></div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <th:block th:include="include :: select2-js" />
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts-gl/dist/echarts-gl.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts-stat/dist/ecStat.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/extension/dataTool.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/map/js/china.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/map/js/world.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/extension/bmap.min.js"></script>
+    <script>
+        var times = $('input[name="dataTimeList"]').val();
+        var xValues = $('input[name="xList"]').val();
+        var yValues = $('input[name="yList"]').val();
+        var dom = document.getElementById("container");
+        var myChart = echarts.init(dom);
+        var app = {};
+        option = null;
+        var symbolSize = 20;
+
+        var xMax = $('input[name="xMax"]').val();
+        var xMin = $('input[name="xMin"]').val();
+        var yMax = $('input[name="yMax"]').val();
+        var yMin = $('input[name="yMin"]').val();
+
+        // var timeData = [
+        //     '2009/6/12 2:00', '2009/6/12 3:00', '2009/6/12 4:00', '2009/6/12 5:00', '2009/6/12 6:00', '2009/6/12 7:00', '2009/6/12 8:00', '2009/6/12 9:00', '2009/6/12 10:00', '2009/6/12 11:00', '2009/6/12 12:00', '2009/6/12 13:00', '2009/6/12 14:00', '2009/6/12 15:00', '2009/6/12 16:00', '2009/6/12 17:00', '2009/6/12 18:00', '2009/6/12 19:00', '2009/6/12 20:00', '2009/6/12 21:00', '2009/6/12 22:00', '2009/6/12 23:00',
+        //     '2009/6/13 0:00', '2009/6/13 1:00', '2009/6/13 2:00', '2009/6/13 3:00', '2009/6/13 4:00', '2009/6/13 5:00', '2009/6/13 6:00', '2009/6/13 7:00', '2009/6/13 8:00', '2009/6/13 9:00', '2009/6/13 10:00', '2009/6/13 11:00', '2009/6/13 12:00', '2009/6/13 13:00', '2009/6/13 14:00', '2009/6/13 15:00', '2009/6/13 16:00', '2009/6/13 17:00', '2009/6/13 18:00', '2009/6/13 19:00', '2009/6/13 20:00', '2009/6/13 21:00'
+        // ];
+        var timeData =[];
+        var xData =[];
+        var yData =[];
+        var timeList = times.split(",");
+        var xList = xValues.split(",");
+        var yList = yValues.split(",");
+            // timeData[i]="'"+times[i]+"'";
+        timeList.forEach(function(value,index) {
+            // timeData.push("'"+value+"'");
+            timeData[index]=value;
+        });
+        xList.forEach(function(value,index) {
+            // timeData.push("'"+value+"'");
+            xData[index]=value;
+        });
+        yList.forEach(function(value,index) {
+            // timeData.push("'"+value+"'");
+            yData[index]=value;
+        });
+        option = {
+            title: {
+                text: '设备x轴和y轴倾角图',
+                subtext: '数据来自Iot Platform',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    animation: false
+                }
+            },
+            legend: {
+                data: ['x轴', 'y轴'],
+                left: 10
+            },
+            toolbox: {
+                feature: {
+                    dataZoom: {
+                        yAxisIndex: 'none'
+                    },
+                    restore: {},
+                    saveAsImage: {}
+                }
+            },
+            axisPointer: {
+                link: {xAxisIndex: 'all'}
+            },
+            dataZoom: [
+                {
+                    show: true,
+                    realtime: true,
+                    start: 30,
+                    end: 70,
+                    xAxisIndex: [0, 1]
+                },
+                {
+                    type: 'inside',
+                    realtime: true,
+                    start: 30,
+                    end: 70,
+                    xAxisIndex: [0, 1]
+                }
+            ],
+            grid: [{
+                left: 50,
+                right: 50,
+                height: '35%'
+            }, {
+                left: 50,
+                right: 50,
+                top: '55%',
+                height: '35%'
+            }],
+            xAxis: [
+                {
+                    type: 'category',
+                    boundaryGap: false,
+                    axisLine: {onZero: true},
+                    data: timeData
+                },
+                {
+                    gridIndex: 1,
+                    type: 'category',
+                    boundaryGap: false,
+                    axisLine: {onZero: true},
+                    data: timeData,
+                    position: 'top'
+                }
+            ],
+            yAxis: [
+                {
+                    name: 'x轴（度）',
+                    type: 'value',
+                    max: xMax,
+                    min: xMin
+                    // min: -20
+                },
+                {
+                    gridIndex: 1,
+                    name: 'y轴（度）',
+                    type: 'value',
+                    max: yMax,
+                    min: yMin
+                    // min: -20
+                }
+            ],
+            series: [
+                {
+                    name: 'x轴',
+                    type: 'line',
+                    symbolSize: 8,
+                    hoverAnimation: false,
+                    data: xData
+                },
+                {
+                    name: 'y轴',
+                    type: 'line',
+                    xAxisIndex: 1,
+                    yAxisIndex: 1,
+                    symbolSize: 8,
+                    hoverAnimation: false,
+                    data: yData
+                }
+            ]
+        };
+
+        if (option && typeof option === "object") {
+            myChart.setOption(option, true);
+        }
+
+    </script>
+</body>
+</html>
